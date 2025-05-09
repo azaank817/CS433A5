@@ -1,9 +1,7 @@
 /**
- * Assignment 5: Page replacement algorithms
+ * FIFO Replacement Algorithm Implementation
  * @file fifo_replacement.cpp
  * @author Azaan Khan
- * @brief A class implementing the FIFO page replacement algorithm
- * @version 1.0
  */
 
 #include "fifo_replacement.h"
@@ -13,49 +11,42 @@ using namespace std;
 
 // Constructor
 FIFOReplacement::FIFOReplacement(int num_pages, int num_frames)
-    : Replacement(num_pages, num_frames) {
-    // Initialize FIFO queue to track the order of loaded pages
-}
+    : Replacement(num_pages, num_frames) {}
 
 // Destructor
-FIFOReplacement::~FIFOReplacement() {
-    // No dynamic allocation in this class; nothing special needed here
-}
+FIFOReplacement::~FIFOReplacement() {}
 
-// Called when an invalid page is accessed and there are free frames
+// Load a page when a free frame is available
 void FIFOReplacement::load_page(int page_num) {
-    // Get the next free frame
     int frame_num = get_next_free_frame();
 
-    // Update the page table: mark valid and set frame number
-    page_table->set_entry(page_num, frame_num, true);
+    // Update page table: mark as valid and set frame number
+    page_table.set_entry(page_num, frame_num, true);
 
-    // Push the new page number into the queue (FIFO order)
+    // Add to FIFO queue
     fifo_queue.push(page_num);
 
-    // Increment statistics
+    // Track page fault
     num_page_faults++;
 }
 
-// Called when an invalid page is accessed and memory is full
+// Replace a page using FIFO strategy (evict oldest page)
 int FIFOReplacement::replace_page(int page_num) {
-    // Get the oldest page (front of the queue)
     int victim_page = fifo_queue.front();
-    fifo_queue.pop(); // Remove victim page from the queue
+    fifo_queue.pop();
 
-    // Get frame number of victim
-    int frame_num = page_table->get_frame_number(victim_page);
+    int frame_num = page_table.get_frame_number(victim_page);
 
-    // Invalidate victim in page table
-    page_table->set_entry(victim_page, -1, false);
+    // Invalidate the victim page
+    page_table.set_entry(victim_page, -1, false);
 
-    // Load the new page into the frame
-    page_table->set_entry(page_num, frame_num, true);
-    fifo_queue.push(page_num); // Add the new page to the back of the queue
+    // Replace it with the new page
+    page_table.set_entry(page_num, frame_num, true);
+    fifo_queue.push(page_num);
 
-    // Increment statistics
     num_page_faults++;
     num_page_replacements++;
 
     return frame_num;
 }
+
